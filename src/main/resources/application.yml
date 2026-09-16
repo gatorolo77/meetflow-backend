@@ -1,0 +1,54 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: meetflow-backend
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: rodrigodaremberg@gmail.com
+    password: tcsizqkzipnkizkk
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+          ssl:
+            trust: "*"
+
+  datasource:
+    url: jdbc:h2:mem:meetflowdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: 
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+app:
+  client:
+    url: http://localhost:4200
+
+logging:
+  level:
+    root: INFO
+    com.meetflow.backend: DEBUG
+
