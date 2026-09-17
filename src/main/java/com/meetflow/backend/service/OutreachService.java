@@ -26,6 +26,10 @@ public class OutreachService {
     }
 
     public Map<String, Object> procesarCampanaCsv(String nombreCampana, String meetingCode, String meetingTitle, String scheduledTime, MultipartFile file) throws Exception {
+        return procesarCampanaCsv(nombreCampana, meetingCode, meetingTitle, scheduledTime, file, null);
+    }
+
+    public Map<String, Object> procesarCampanaCsv(String nombreCampana, String meetingCode, String meetingTitle, String scheduledTime, MultipartFile file, String baseUrl) throws Exception {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("El archivo CSV no puede estar vacío.");
         }
@@ -75,25 +79,36 @@ public class OutreachService {
         );
 
         List<String> enviados = new ArrayList<>();
+        List<String> fallidos = new ArrayList<>();
         // Send email invitations
         for (GuestContact contacto : contactos) {
-            String link = emailService.sendGuestMeetingInvitation(
+            boolean enviado = emailService.sendGuestMeetingInvitation(
                     contacto.getEmail(),
                     contacto.getName(),
                     meetingCode,
                     meetingTitle != null ? meetingTitle : "Reunión Agendada MeetFlow",
-                    scheduledTime != null ? scheduledTime : "Hoy, 16:30"
+                    scheduledTime != null ? scheduledTime : "Hoy, 16:30",
+                    baseUrl
             );
-            enviados.add(contacto.getEmail());
+            if (enviado) {
+                enviados.add(contacto.getEmail());
+            } else {
+                fallidos.add(contacto.getEmail());
+            }
         }
 
         Map<String, Object> resultado = new HashMap<>();
-        resultado.put("mensaje", "Campaña procesada y reunión agendada exitosamente");
+        if (enviados.isEmpty() && !fallidos.isEmpty()) {
+            resultado.put("mensaje", "Reunión registrada en tu Agenda, pero no se pudieron despachar los correos por error de autenticación SMTP con Gmail.");
+        } else {
+            resultado.put("mensaje", "Campaña procesada y reunión agendada exitosamente");
+        }
         resultado.put("campana", nombreCampana);
         resultado.put("meetingCode", meetingCode);
         resultado.put("meetingTitle", meetingTitle);
         resultado.put("totalContactos", contactos.size());
         resultado.put("correosEnviados", enviados);
+        resultado.put("correosFallidos", fallidos);
 
         return resultado;
     }

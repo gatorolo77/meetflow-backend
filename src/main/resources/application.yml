@@ -9,7 +9,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: rodrigodaremberg@gmail.com
-    password: tcsizqkzipnkizkk
+    password: brvfcifbosklhrro
     properties:
       mail:
         smtp:
@@ -45,7 +45,7 @@ spring:
 
 app:
   client:
-    url: http://localhost:4200
+    url: ${APP_CLIENT_URL:https://opinions-store-mlb-creature.trycloudflare.com}
 
 logging:
   level:

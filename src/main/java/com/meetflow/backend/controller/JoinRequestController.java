@@ -23,6 +23,11 @@ public class JoinRequestController {
         return ResponseEntity.ok(joinRequestService.getPendingRequests());
     }
 
+    @GetMapping({"", "/all"})
+    public ResponseEntity<List<JoinRequest>> getAllRequests() {
+        return ResponseEntity.ok(joinRequestService.getAllRequests());
+    }
+
     @PostMapping
     public ResponseEntity<JoinRequest> createRequest(@RequestBody Map<String, String> payload) {
         String name = payload.get("name");
@@ -46,5 +51,11 @@ public class JoinRequestController {
         return joinRequestService.updateRequestStatus(id, RequestStatus.REJECTED)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/leave")
+    public ResponseEntity<?> guestLeave(@RequestParam String name, @RequestParam String meetingCode) {
+        joinRequestService.removeApprovedRequest(name, meetingCode);
+        return ResponseEntity.ok(Map.of("mensaje", "Invitado remido de la reunión en backend"));
     }
 }

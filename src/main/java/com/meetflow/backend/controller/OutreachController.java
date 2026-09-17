@@ -25,7 +25,9 @@ public class OutreachController {
             @RequestParam(value = "nombreCampana", defaultValue = "Campaña Outreach") String nombreCampana,
             @RequestParam(value = "meetingCode", required = false) String meetingCode,
             @RequestParam(value = "meetingTitle", defaultValue = "Reunión MeetFlow") String meetingTitle,
-            @RequestParam(value = "scheduledTime", defaultValue = "Hoy, 16:30") String scheduledTime
+            @RequestParam(value = "scheduledTime", defaultValue = "Hoy, 16:30") String scheduledTime,
+            @RequestParam(value = "baseUrl", required = false) String baseUrlParam,
+            jakarta.servlet.http.HttpServletRequest request
     ) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "El archivo CSV está vacío"));
@@ -35,8 +37,22 @@ public class OutreachController {
             meetingCode = "outreach-" + Math.abs(nombreCampana.hashCode() % 10000);
         }
 
+        String baseUrl = baseUrlParam;
+        if (baseUrl == null || baseUrl.trim().isEmpty()) {
+            baseUrl = request.getHeader("Origin");
+        }
+        if (baseUrl == null || baseUrl.trim().isEmpty()) {
+            String referer = request.getHeader("Referer");
+            if (referer != null && referer.startsWith("http")) {
+                try {
+                    java.net.URI uri = new java.net.URI(referer);
+                    baseUrl = uri.getScheme() + "://" + uri.getAuthority();
+                } catch (Exception ignored) {}
+            }
+        }
+
         try {
-            Map<String, Object> resultado = outreachService.procesarCampanaCsv(nombreCampana, meetingCode.trim(), meetingTitle.trim(), scheduledTime.trim(), file);
+            Map<String, Object> resultado = outreachService.procesarCampanaCsv(nombreCampana, meetingCode.trim(), meetingTitle.trim(), scheduledTime.trim(), file, baseUrl);
             return ResponseEntity.ok(resultado);
         } catch (Exception e) {
             e.printStackTrace();

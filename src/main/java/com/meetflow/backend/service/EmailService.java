@@ -70,10 +70,18 @@ public class EmailService {
         return activationLink;
     }
 
-    public String sendGuestMeetingInvitation(String toEmail, String guestName, String meetingCode, String meetingTitle, String scheduledTime) {
+    public boolean sendGuestMeetingInvitation(String toEmail, String guestName, String meetingCode, String meetingTitle, String scheduledTime) {
+        return sendGuestMeetingInvitation(toEmail, guestName, meetingCode, meetingTitle, scheduledTime, null);
+    }
+
+    public boolean sendGuestMeetingInvitation(String toEmail, String guestName, String meetingCode, String meetingTitle, String scheduledTime, String customBaseUrl) {
+        String base = (customBaseUrl != null && !customBaseUrl.trim().isEmpty()) ? customBaseUrl.trim() : clientUrl;
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
         String safeName = (guestName != null && !guestName.trim().isEmpty()) ? guestName.trim() : "Invitado";
         String safeTime = (scheduledTime != null && !scheduledTime.trim().isEmpty()) ? scheduledTime.trim() : "Hoy, 16:30";
-        String waitingRoomLink = clientUrl + "/login?mode=GUEST&code=" + meetingCode + "&guestName=" + java.net.URLEncoder.encode(safeName, java.nio.charset.StandardCharsets.UTF_8) + "&email=" + java.net.URLEncoder.encode(toEmail, java.nio.charset.StandardCharsets.UTF_8) + "&autoJoin=true";
+        String waitingRoomLink = base + "/login?mode=GUEST&code=" + meetingCode + "&guestName=" + java.net.URLEncoder.encode(safeName, java.nio.charset.StandardCharsets.UTF_8) + "&email=" + java.net.URLEncoder.encode(toEmail, java.nio.charset.StandardCharsets.UTF_8) + "&autoJoin=true";
 
         log.info("[MeetFlow Email Outreach] Invitación a reunión para: {} ({}) | Sala: {} | Horario: {} | Link: {}", safeName, toEmail, meetingCode, safeTime, waitingRoomLink);
 
@@ -82,7 +90,11 @@ public class EmailService {
                 MimeMessage message = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-                helper.setFrom(fromEmail);
+                try {
+                    helper.setFrom(fromEmail, "MeetFlow Videoconferencias");
+                } catch (Exception ex) {
+                    helper.setFrom(fromEmail);
+                }
                 helper.setTo(toEmail);
                 helper.setSubject("Invitación a Reunión: " + meetingTitle + " [" + safeTime + "]");
 
@@ -115,13 +127,14 @@ public class EmailService {
                 mailSender.send(message);
 
                 log.info("[MeetFlow Email Outreach] Correo enviado exitosamente a: {}", toEmail);
+                return true;
             } catch (Exception e) {
                 log.warn("[MeetFlow Email Outreach] No se pudo enviar el correo mediante SMTP (¿Propiedades no configuradas?): {}. El enlace generado es: {}", e.getMessage(), waitingRoomLink);
+                return false;
             }
         } else {
             log.info("[MeetFlow Email Outreach] JavaMailSender no configurado. Enlace de sala de espera: {}", waitingRoomLink);
+            return false;
         }
-
-        return waitingRoomLink;
     }
 }
