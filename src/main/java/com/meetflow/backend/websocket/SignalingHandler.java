@@ -39,8 +39,11 @@ public class SignalingHandler extends TextWebSocketHandler {
             // Broadcast SDP OFFER, ANSWER, CANDIDATE to all other peers in the room
             String roomCode = extractJsonValue(payload, "roomCode");
             if (roomCode != null && rooms.containsKey(roomCode)) {
-                // Attach sender ID to payload
-                String updatedPayload = payload.replace("}", ",\"senderId\":\"" + session.getId() + "\"}");
+                // Attach sender ID to payload safely at the last closing brace
+                int lastBrace = payload.lastIndexOf('}');
+                String updatedPayload = (lastBrace != -1)
+                        ? payload.substring(0, lastBrace) + ",\"senderId\":\"" + session.getId() + "\"}"
+                        : payload;
                 broadcastToRoom(roomCode, session.getId(), new TextMessage(updatedPayload));
             }
         }

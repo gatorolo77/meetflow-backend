@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -45,7 +45,7 @@ spring:
 
 app:
   client:
-    url: ${APP_CLIENT_URL:https://opinions-store-mlb-creature.trycloudflare.com}
+    url: ${APP_CLIENT_URL:https://meetflow-df071.web.app}
 
 logging:
   level:

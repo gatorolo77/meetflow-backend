@@ -17,7 +17,7 @@ public class EmailService {
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
-    @Value("${app.client.url:http://localhost:4200}")
+    @Value("${app.client.url:https://meetflow-df071.web.app}")
     private String clientUrl;
 
     @Value("${spring.mail.username:rodrigodaremberg@gmail.com}")
